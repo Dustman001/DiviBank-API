@@ -4,14 +4,16 @@ using DiviBank_Core.Models.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DiviBank_Core.Migrations
 {
     [DbContext(typeof(DiviContext))]
-    partial class DiviContextModelSnapshot : ModelSnapshot
+    [Migration("20210915181041_MG-Relation")]
+    partial class MGRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

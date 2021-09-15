@@ -27,7 +27,7 @@ namespace DiviBank_Core.Controllers
         {
             try
             {
-                var clients = await _context.Clients.ToListAsync();
+                var clients = await _context.Clients.Include(i => i.Loans).ToListAsync();
 
                 return clients;
             }catch(Exception x)
