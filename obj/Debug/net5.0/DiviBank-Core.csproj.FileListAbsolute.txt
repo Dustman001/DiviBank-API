@@ -148,3 +148,4 @@ C:\DiviBank-Core\bin\Debug\net5.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\DiviBank-Core\bin\Debug\net5.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\DiviBank-Core\bin\Debug\net5.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 C:\DiviBank-Core\obj\Debug\net5.0\DiviBank-Core.MvcApplicationPartsAssemblyInfo.cs
+C:\DiviBank-Core\obj\Debug\net5.0\DiviBank-Core.csproj.AssemblyReference.cache
