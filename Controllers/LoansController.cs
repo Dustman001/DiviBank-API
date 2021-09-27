@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DiviBank_Core.Models;
 using DiviBank_Core.Models.Db;
+using DiviBank_Core.Models.DTOs;
+using DiviBank_Core.Services;
+using System.Text.Json;
 
 namespace DiviBank_Core.Controllers
 {
@@ -14,49 +17,53 @@ namespace DiviBank_Core.Controllers
     [ApiController]
     public class LoansController : ControllerBase
     {
-        private readonly DiviContext _context;
+        private readonly loanService _loanService;
 
-        public LoansController(DiviContext context)
+        public LoansController(loanService loanService)
         {
-            _context = context;
+            this._loanService = loanService;
         }
 
         // GET: api/Loans
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Loan>>> GetLoan()
+        public async Task<ActionResult<IEnumerable<dtoLoan>>> GetLoanList()
         {
-            return await _context.Loans.ToListAsync();
+            try
+            {
+                return new JsonResult(await _loanService.getListAsync());
+            }catch(Exception ex)
+            {
+                throw;
+            }
         }
 
         // GET: api/Loans/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Loan>> GetLoan(int id)
+        public async Task<ActionResult<string>> GetLoan(int id)
         {
-            var loan = await _context.Loans.FindAsync(id);
+            var dtoloan = await _loanService.FindAsync(id);
 
-            if (loan == null)
+            if (dtoloan == null)
             {
                 return NotFound();
             }
 
-            return loan;
+            return JsonSerializer.Serialize(dtoloan);
         }
 
         // PUT: api/Loans/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutLoan(int id, Loan loan)
+        public async Task<IActionResult> PutLoan(int id, dtoLoan loan)
         {
             if (id != loan.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(loan).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _loanService.Update(loan);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -76,33 +83,46 @@ namespace DiviBank_Core.Controllers
         // POST: api/Loans
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Loan>> PostLoan(Loan loan)
+        public async Task<ActionResult<Loan>> PostLoan(dtoLoan loan)
         {
-            _context.Loans.Add(loan);
-            await _context.SaveChangesAsync();
+            try
+            {
+                //dtoClient client = JsonSerializer.Deserialize<dtoClient>(data.Replace("'","\""));
 
-            return CreatedAtAction("GetLoan", new { id = loan.Id }, loan);
+                try
+                {
+                    loan = await _loanService.Save(loan);
+                }
+                catch (Exception x)
+                {
+                    throw;
+                }
+
+                return CreatedAtAction("GetClient", new { id = loan.Id }, loan);
+            }
+            catch (Exception x)
+            {
+                return BadRequest();
+            }
         }
 
         // DELETE: api/Loans/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLoan(int id)
         {
-            var loan = await _context.Loans.FindAsync(id);
-            if (loan == null)
+            var client = await _loanService.Delete(id);
+
+            if (client == null)
             {
                 return NotFound();
             }
-
-            _context.Loans.Remove(loan);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool LoanExists(int id)
         {
-            return _context.Loans.Any(e => e.Id == id);
+            return _loanService.ifany(id);
         }
     }
 }

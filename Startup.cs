@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using DiviBank_Core.Models.Db;
 using Microsoft.OpenApi.Models;
+using DiviBank_Core.Services;
 
 namespace DiviBank_Core
 {
@@ -36,8 +37,12 @@ namespace DiviBank_Core
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "DiviBank Test", Version = "v1" });
             });
 
-            //services.AddDbContext<DiviContext>(options => options.UseSqlServer("Data Source=HostA;Initial Catalog=DiviBank;User ID=sa;Password=scada11236;ConnectionRetry=50"));
-            services.AddDbContext<DiviContext>(options => options.UseSqlServer("Server=(LocalDB)\\MSSQLLocalDB;Initial Catalog=DiviBank;Integrated Security=true"));
+            services.AddScoped<clientService>();
+            services.AddScoped<loanService>();
+
+            services.AddDbContext<DiviContext>(options => 
+            options.UseSqlServer("Server=(LocalDB)\\MSSQLLocalDB;Initial Catalog=DiviBank;" +
+            "Integrated Security=true"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

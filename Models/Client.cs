@@ -7,7 +7,19 @@ namespace DiviBank_Core.Models
 {
     public class Client
     {
-        public int Id { get; set; }
+        public Client()
+        {
+        }
+
+        public Client(DTOs.dtoClient dtoClient)
+        {
+            Id = dtoClient.id;
+            Name = dtoClient.name;
+            BirthDate = Convert.ToDateTime(dtoClient.birthDate);
+            Contact = dtoClient.contact;
+        }
+
+        public int? Id { get; set; }
 
         public string Name { get; set; }
 
@@ -16,5 +28,7 @@ namespace DiviBank_Core.Models
         public string Contact { get; set; }
 
         public ICollection<Loan> Loans { get; set; }
+
+
     }
 }

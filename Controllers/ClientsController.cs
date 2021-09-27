@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DiviBank_Core.Models;
 using DiviBank_Core.Models.Db;
+using DiviBank_Core.Services;
+using DiviBank_Core.Models.DTOs;
+using System.Text.Json;
 
 namespace DiviBank_Core.Controllers
 {
@@ -14,34 +17,61 @@ namespace DiviBank_Core.Controllers
     [ApiController]
     public class ClientsController : ControllerBase
     {
-        private readonly DiviContext _context;
+        private readonly clientService _clientService;
 
-        public ClientsController(DiviContext context)
+        public ClientsController(clientService clientService)
         {
-            _context = context;
+            _clientService = clientService;
         }
 
         // GET: api/Clients
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Client>>> GetClient()
+        public async Task<JsonResult> GetClient()
         {
             try
             {
-                var clients = await _context.Clients.Include(i => i.Loans).ToListAsync();
-
-                return clients;
-            }catch(Exception x)
+                return new JsonResult(await _clientService.getListAsync());
+            }
+            catch (Exception x)
             {
                 throw;
             }
 
         }
-
+        
         // GET: api/Clients/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Client>> GetClient(int id)
+        public async Task<ActionResult<string>> GetClient(int id)
         {
-            var client = await _context.Clients.FindAsync(id);
+            var dtoclient = await _clientService.FindAsync(id);
+
+            if (dtoclient == null)
+            {
+                return NotFound();
+            }
+
+            return  JsonSerializer.Serialize(dtoclient);
+        }
+
+        // GET: api/Clients
+        [HttpGet("Loans")]
+        public async Task<ActionResult<IEnumerable<Client>>> GetClientWithLoans()
+        {
+            try
+            {
+                return await _clientService.getLoanListAsync();
+            }
+            catch (Exception x)
+            {
+                throw;
+            }
+        }
+        
+        // GET: api/Clients/5
+        [HttpGet("Loans/{id}")]
+        public async Task<ActionResult<Client>> GetClientLoan(int id)
+        {
+            var client = await _clientService.FindLoanAsync(id);
 
             if (client == null)
             {
@@ -54,18 +84,16 @@ namespace DiviBank_Core.Controllers
         // PUT: api/Clients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutClient(int id, Client client)
+        public async Task<IActionResult> PutClient(int id, dtoClient client)
         {
-            if (id != client.Id)
+            if (id != client.id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(client).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _clientService.Update(client);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -85,40 +113,45 @@ namespace DiviBank_Core.Controllers
         // POST: api/Clients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Client>> PostClient(Client client)
+        public async Task<ActionResult<dtoClient>> PostClient([FromBody]dtoClient client)
         {
             try
             {
-                _context.Clients.Add(client);
-                await _context.SaveChangesAsync();
+                //dtoClient client = JsonSerializer.Deserialize<dtoClient>(data.Replace("'","\""));
 
-            }catch(Exception x)
-            {
-                throw;
+                try
+                {
+                    client = await _clientService.Save(client);
+                }catch(Exception x)
+                {
+                    throw;
+                }
+
+                return CreatedAtAction("GetClient", new { id = client.id }, client);
             }
-
-            return CreatedAtAction("GetClient", new { id = client.Id }, client);
+            catch (Exception x)
+            {
+                return BadRequest();
+            }
         }
 
         // DELETE: api/Clients/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClient(int id)
         {
-            var client = await _context.Clients.FindAsync(id);
+            var client = await _clientService.Delete(id);
+            
             if (client == null)
             {
                 return NotFound();
             }
-
-            _context.Clients.Remove(client);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool ClientExists(int id)
         {
-            return _context.Clients.Any(e => e.Id == id);
+            return _clientService.ifany(id);
         }
     }
 }
